@@ -8,7 +8,7 @@ from pandas import DataFrame
 class AwsElbAccessLog(object):
     # reference:
     # https://docs.aws.amazon.com/ko_kr/elasticloadbalancing/latest/application/load-balancer-access-logs.html#access-log-entry-format
-    __raw_field_names = [
+    raw_field_names = [
         "type", "timestamp", "elb", "client:port", "target:port", "request_processing_time",
         "target_processing_time", "response_processing_time", "elb_status_code", "target_status_code", "received_bytes",
         "sent_bytes", "request", "user_agent", "ssl_cipher", "ssl_protocol", "target_group_arn", "trace_id",
@@ -16,7 +16,7 @@ class AwsElbAccessLog(object):
         "redirect_url", "error_reason"
     ]
 
-    __custom_field_names = [
+    custom_field_names = [
         "client_ip", "client_port", "target_ip", "target_port", "request_verb", "request_url", "request_proto"
     ]
 
@@ -26,7 +26,7 @@ class AwsElbAccessLog(object):
             buff = StringIO(single_line)
             single_line = next(csv.reader(buff, delimiter=' '))
         if isinstance(single_line, Iterable):
-            self.data = dict(zip(self.__raw_field_names, single_line))
+            self.data = dict(zip(self.raw_field_names, single_line))
 
     def __getitem__(self, item):
         if item in self.data:
@@ -37,13 +37,13 @@ class AwsElbAccessLog(object):
                 return None
             return r
 
-    def to_dict(self, keys=None):
+    def to_dict(self, field_names=None):
         ret = {}
-        if keys is None:
-            keys = self.__raw_field_names + self.__custom_field_names
-        for key in keys:
-            if self[key]:
-                ret.update({str(key): self[key]})
+        if field_names is None:
+            field_names = self.raw_field_names + self.custom_field_names
+        for field_name in field_names:
+            if self[field_name]:
+                ret.update({str(field_name): self[field_name]})
         return ret
 
     @property
@@ -96,9 +96,9 @@ class AwsElbAccessLog(object):
             return None
 
 
-def aws_elb_access_log2csv(elb_log_file_path, output_csv_file_path, columns=None):
-    if not columns:
-        columns = [
+def aws_elb_access_log2csv(elb_log_file_path, output_csv_file_path, field_names=None):
+    if not field_names:
+        field_names = [
             "type", "timestamp", "elb", "client_ip", "client_port", "target_ip", "target_port",
             "request_processing_time", "target_processing_time", "response_processing_time", "elb_status_code",
             "target_status_code", "received_bytes", "sent_bytes", "request_verb", "request_url", "request_proto",
@@ -109,8 +109,8 @@ def aws_elb_access_log2csv(elb_log_file_path, output_csv_file_path, columns=None
     rows = []
     with open(elb_log_file_path) as f:
         for row in csv.reader(f, delimiter=' '):
-            rows.append(AwsElbAccessLog(row).to_dict(keys=columns))
+            rows.append(AwsElbAccessLog(row).to_dict(field_names=field_names))
 
     df = DataFrame(rows)
-    df.to_csv(output_csv_file_path, index=False, columns=columns, header=columns,
+    df.to_csv(output_csv_file_path, index=False, columns=field_names, header=field_names,
               encoding='utf-8')

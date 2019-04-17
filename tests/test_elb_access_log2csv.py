@@ -78,15 +78,10 @@ class Test(unittest.TestCase):
 
         assert os.path.isfile(self.elb_log_file_path)
         assert not os.path.isfile(self.output_csv_file_path)
-        header = [
-            "type", "timestamp", "elb", "client:port", "target:port",
-            "request_processing_time", "target_processing_time", "response_processing_time", "elb_status_code",
-            "target_status_code", "received_bytes", "sent_bytes", "request", "user_agent", "ssl_cipher",
-            "ssl_protocol", "target_group_arn", "trace_id", "domain_name", "chosen_cert_arn", "matched_rule_priority",
-            "request_creation_time", "actions_executed", "redirect_url", "error_reason"]
 
         # TC: "elb_access_log2csv" function
-        aws_elb_access_log2csv(self.elb_log_file_path, self.output_csv_file_path, columns=header)
+        aws_elb_access_log2csv(
+            self.elb_log_file_path, self.output_csv_file_path, field_names=AwsElbAccessLog.raw_field_names)
 
         assert os.path.isfile(self.output_csv_file_path)
 
@@ -103,7 +98,7 @@ class Test(unittest.TestCase):
         # TC: DataFrame from csv and ElbAccessLog items
         lines = []
         for line in self.elb_log_lines:
-            lines.append(AwsElbAccessLog(line).to_dict(keys=header))
+            lines.append(AwsElbAccessLog(line).to_dict(field_names=AwsElbAccessLog.raw_field_names))
 
         df1 = pd.DataFrame(data_row_list[1:], columns=data_row_list[0])
         df1_dict = df1.to_dict()  # from csv
