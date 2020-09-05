@@ -40,10 +40,12 @@ make_csv(){
 			_date=${year}${month}${day}T${_hour}
 			zcat ${elb_log_path}/*${_date}*.log.gz > ${elb_log_path}/${area}_access_${_date}.log
 			run_log2csv ${elb_log_path}/${area}_access_${_date}.log ${csv_log_path}/${area}_access_${_date}.csv
+			rm ${elb_log_path}/${area}_access_${_date}.log
 		done
 	else
 		zcat ${elb_log_path}/*${dateStr}*.log.gz > ${elb_log_path}/${area}_access_${dateStr}.log
         run_log2csv ${elb_log_path}/${area}_access_${dateStr}.log ${csv_log_path}/${area}_access_${dateStr}.csv
+		rm ${elb_log_path}/${area}_access_${dateStr}.log
 	fi
 }
 
